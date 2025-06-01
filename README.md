@@ -134,7 +134,7 @@ EDA dilakukan untuk memahami lebih dalam karakteristik dataset.
     plt.tight_layout() #
     plt.show() #
     ```
-![distribusi genre](https://github.com/user-attachments/assets/8956d11d-80f5-44be-bdb1-944c9cf1c06a)
+    ![distribusi genre](https://github.com/user-attachments/assets/8956d11d-80f5-44be-bdb1-944c9cf1c06a)
     *Insight*: Genre seperti "rock", "electronic", "pop", "metal", dan "indie" tampak dominan. Ini penting untuk _Content-Based Filtering_ karena variasi dan distribusi genre akan mempengaruhi kualitas rekomendasi berbasis genre.
 
 3.  **Distribusi Artis:**
@@ -148,12 +148,15 @@ EDA dilakukan untuk memahami lebih dalam karakteristik dataset.
     plt.tight_layout() #
     plt.show() #
     ```
-![distribusi artis](https://github.com/user-attachments/assets/0afdf14e-a982-42be-8af2-242abcdf9f3d)
+    ![distribusi artis](https://github.com/user-attachments/assets/0afdf14e-a982-42be-8af2-242abcdf9f3d)
     *Insight*: Beberapa artis memiliki kontribusi lagu yang signifikan dalam dataset. Ini dapat mempengaruhi rekomendasi, terutama jika pengguna menunjukkan preferensi untuk artis tertentu.
 
 4.  **Pemeriksaan Nilai Hilang dan Duplikat:**
     -   Dilakukan pemeriksaan `duplicated().sum()` dan  `isnull().sum()` pada `music_info_df` untuk kolom `tags_cleaned`, `name`, `artist`, dan `genre`.
 
+    <br>
+    <br>
+    
 	<img width="307" alt="duplicate" src="https://github.com/user-attachments/assets/97fe03ed-80f6-4daf-b796-629d945bfee6" />
 
     <br>
