@@ -276,17 +276,18 @@ Tahapan ini mencakup semua langkah transformasi data yang dilakukan untuk menyia
 10.  **Pemisahan Data Latih dan Validasi untuk Collaborative Filtering:**
     -   Dataset `df_cf` diacak dan dibagi menjadi data latih (70%) dan data validasi (30%).
     -   **Alasan:** Untuk melatih model _Collaborative Filtering_ dan mengevaluasi kinerjanya pada data yang tidak terlihat selama pelatihan.
-    ```python
-    df_cf = df_cf.sample(frac=1, random_state=42) 
-    x = df_cf[['user', 'track']].values 
-    train_indices = int(0.7 * df_cf.shape[0]) 
-    x_train, x_val, y_train, y_val = (
-        x[:train_indices], 
-        x[train_indices:], 
-        y[:train_indices], 
-        y[train_indices:] 
-    )
-    ```
+
+        ```python
+        df_cf = df_cf.sample(frac=1, random_state=42) 
+        x = df_cf[['user', 'track']].values 
+        train_indices = int(0.7 * df_cf.shape[0]) 
+        x_train, x_val, y_train, y_val = (
+            x[:train_indices], 
+            x[train_indices:], 
+            y[:train_indices], 
+            y[train_indices:] 
+        )   
+        ```
 
 ## Modeling and Result
 
