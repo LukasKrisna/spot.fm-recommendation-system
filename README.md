@@ -156,13 +156,23 @@ EDA dilakukan untuk memahami lebih dalam karakteristik dataset.
     *Insight*: Beberapa artis memiliki kontribusi lagu yang signifikan dalam dataset. Ini dapat mempengaruhi rekomendasi, terutama jika pengguna menunjukkan preferensi untuk artis tertentu.
 
 4.  **Pemeriksaan Nilai Hilang dan Tipe Data:**
-    -   Dilakukan pemeriksaan `music_info_df.info()` pada `music_info_df`.
+    -   Dilakukan pemeriksaan `music_info_df.info()`.
 
     <br>
     
 	<img width="490" alt="Image" src="https://github.com/user-attachments/assets/66ec0a6a-3d77-43a2-b91e-bcd06d09e4ca" />
 
     <br>
+    <br>
+
+    -   Dilakukan pemeriksaan `user_history_df.info()`.
+    <br>
+    <br>
+
+    <img width="375" alt="Image" src="https://github.com/user-attachments/assets/9a06b588-235b-4902-a326-6b5fb0ae273f" />
+
+    <br>
+
 
 ## Data Preparation
 
