@@ -81,8 +81,12 @@ Berikut adalah deskripsi variabel yang relevan dari `Music Info.csv` dan `User L
 | `track_id`   | ID unik untuk setiap lagu.                                                 | Digunakan (Kunci utama)        |
 | `name`       | Nama atau judul lagu.                                                      | Digunakan                      |
 | `artist`     | Nama artis yang membawakan lagu.                                           | Digunakan                      |
-| `tags`       | Tag atau genre yang diasosiasikan dengan lagu, dipisahkan oleh koma.       | Digunakan (diproses menjadi genre tunggal) |
-| `tags_cleaned` (Fitur Baru) | Genre pertama yang diekstrak dan dibersihkan dari kolom `tags`. | Digunakan (sebagai 'genre')  |
+| `spotify_preview_url`| URL pratinjau lagu di Spotify. | Dihapus | 
+| `spotify_id` | ID unik lagu di Spotify. | Dihapus |
+| `tags`       | Tag atau beberapa genre yang diasosiasikan dengan lagu, dipisahkan oleh koma.       | Digunakan (diproses menjadi genre tunggal) |
+| `genre` | Genre tunnggal lagu. | Dihapus |
+| `year` | Tahun rilis lagu. | Dihapus | 
+| `duration_ms` | Durasi lagu dalam milidetik. | Dihapus |
 | `danceability`     | Menggambarkan seberapa cocok sebuah lagu untuk menari berdasarkan kombinasi elemen musik termasuk tempo, stabilitas ritme, kekuatan ketukan, dan keteraturan keseluruhan. Nilai 0.0 paling tidak bisa ditarikan dan 1.0 paling bisa ditarikan.                                            | Dihapus                      |
 | `energy`           | Merupakan ukuran persepsi dari intensitas dan aktivitas. Biasanya, trek yang energik terasa cepat, keras, dan berisik. Nilai dari 0.0 hingga 1.0.                                                                                                                                         | Dihapus                      |
 | `key`              | Kunci nada keseluruhan dari trek. Direpresentasikan dalam notasi Pitch Class standar (misalnya 0 = C, 1 = C♯/D♭, 2 = D, dst.).                                                                                                                                                            | Dihapus                      |
@@ -151,18 +155,15 @@ EDA dilakukan untuk memahami lebih dalam karakteristik dataset.
     ![distribusi artis](https://github.com/user-attachments/assets/0afdf14e-a982-42be-8af2-242abcdf9f3d)
     *Insight*: Beberapa artis memiliki kontribusi lagu yang signifikan dalam dataset. Ini dapat mempengaruhi rekomendasi, terutama jika pengguna menunjukkan preferensi untuk artis tertentu.
 
-4.  **Pemeriksaan Nilai Hilang dan Duplikat:**
-    -   Dilakukan pemeriksaan `duplicated().sum()` dan  `isnull().sum()` pada `music_info_df` untuk kolom `tags_cleaned`, `name`, `artist`, dan `genre`.
+4.  **Pemeriksaan Nilai Hilang dan Tipe Data:**
+    -   Dilakukan pemeriksaan `music_info_df.info()` pada `music_info_df`.
 
     <br>
     <br>
     
-	<img width="307" alt="duplicate" src="https://github.com/user-attachments/assets/97fe03ed-80f6-4daf-b796-629d945bfee6" />
+	<img width="490" alt="Image" src="https://github.com/user-attachments/assets/66ec0a6a-3d77-43a2-b91e-bcd06d09e4ca" />
 
     <br>
-    <br>
-
-    <img width="215" alt="isnull_sum" src="https://github.com/user-attachments/assets/71343542-24af-4d61-bc4e-bda60f7bc516" />
 
 ## Data Preparation
 
@@ -199,21 +200,49 @@ Tahapan ini mencakup semua langkah transformasi data yang dilakukan untuk menyia
     -   Menghapus duplikat `track_id`.
     -   **Alasan:** Membuat dataset musik yang ringkas dan bersih khusus untuk digunakan dalam sistem rekomendasi, terutama untuk mencocokkan ID lagu dan mengambil metadata.
     ```python
-    clean_music_df = music_info_df[['track_id', 'name', 'artist', 'tags_cleaned']].copy() #
+    clean_music_df = music_info_df[['track_id', 'name', 'artist', 'tags_cleaned']].copy()
     clean_music_df.rename(columns={'tags_cleaned': 'genre'}, inplace=True) 
     clean_music_df.dropna(subset=['name', 'artist', 'genre'], inplace=True) 
     clean_music_df = clean_music_df.drop_duplicates('track_id') 
     ```
     DataFrame ini menjadi dasar untuk _Content-Based Filtering_ dan untuk memperkaya output dari _Collaborative Filtering_.
 
-5.  **Penggabungan Data untuk Collaborative Filtering (`df_cf`):**
+5. **Pembuatan DataFrame (`music_for_content_based`)**
+    - Untuk lebih memastikan struktur data yang akan digunakan oleh model Content-Based Filtering, kolom-kolom dari `clean_music_df` (`track_id`, `name`, `artist`, `genre`) diekstrak menjadi list terpisah.
+    - List-list ini kemudian digunakan untuk membuat DataFrame baru, yaitu `music_for_content_based`.
+    ```python
+    track_ids_cb = clean_music_df['track_id'].tolist()
+    track_names_cb = clean_music_df['name'].tolist()
+    track_artist_cb = clean_music_df['artist'].tolist()
+    track_genres_cb = clean_music_df['genre'].tolist()
+
+    music_for_content_based = pd.DataFrame({
+    'track_id': track_ids_cb,
+    'track_name': track_names_cb,
+    'artist': track_artist_cb,
+    'genre': track_genres_cb
+    })
+    ```
+
+6. **TF-IDF Vectorization pada Genre (untuk Content-Based Filtering):**
+    -   Kolom `genre` dari `music_for_content_based` (hasil dari `clean_music_df`) digunakan.
+    -   `TfidfVectorizer` mengubah daftar genre menjadi matriks representasi numerik TF-IDF. Setiap baris mewakili sebuah lagu, dan setiap kolom mewakili sebuah istilah genre unik. Nilai dalam matriks menunjukkan seberapa penting sebuah genre untuk sebuah lagu.
+    -   **Alasan:** Mengubah fitur tekstual (genre) menjadi format numerik yang dapat digunakan oleh algoritma _machine learning_ untuk menghitung kemiripan.
+    ```python
+    data_cb = music_for_content_based
+
+    tfidf_vectorizer = TfidfVectorizer() 
+    tfidf_matrix = tfidf_vectorizer.fit_transform(data_cb['genre']) 
+    ```
+
+6.  **Penggabungan Data untuk Collaborative Filtering (`df_cf`):**
     -   `user_history_df_reduced` digabungkan dengan `music_for_content_based` berdasarkan `track_id`.
     -   **Alasan:** Menggabungkan riwayat interaksi pengguna dengan metadata lagu untuk analisis lebih lanjut dan persiapan data _Collaborative Filtering_.
     ```python
     df_cf = pd.merge(user_history_df_reduced, music_for_content_based[['track_id', 'track_name', 'artist', 'genre']], on='track_id', how='inner') 
     ```
 
-6.  **Encoding User dan Track ID untuk Collaborative Filtering:**
+7.  **Encoding User dan Track ID untuk Collaborative Filtering:**
     -   ID pengguna (`user_id`) dan ID lagu (`track_id`) dipetakan ke integer unik.
     -   **Alasan:** Model _machine learning_, terutama _embedding layers_ pada _neural network_, memerlukan input numerik kategorikal.
     ```python
@@ -229,7 +258,7 @@ Tahapan ini mencakup semua langkah transformasi data yang dilakukan untuk menyia
     df_cf['track'] = df_cf['track_id'].map(track_to_track_encoded) 
     ```
 
-7.  **Normalisasi Playcount untuk Collaborative Filtering:**
+8.  **Normalisasi Playcount untuk Collaborative Filtering:**
     -   Nilai `playcount` dikonversi ke float32 dan dinormalisasi ke rentang [0, 1] menggunakan Min-Max scaling.
     -   **Alasan:** Menstabilkan proses pelatihan model _neural network_ dan memastikan bahwa _playcount_ diperlakukan sebagai skor preferensi dalam rentang yang konsisten untuk fungsi aktivasi sigmoid.
     ```python
@@ -239,13 +268,13 @@ Tahapan ini mencakup semua langkah transformasi data yang dilakukan untuk menyia
     y = df_cf['playcount'].apply(lambda x: (x - min_playcount) / (max_playcount - min_playcount)).values 
     ```
 
-8. **Mengacak Urutan Data untuk Collaborative Filtering:**
+9. **Mengacak Urutan Data untuk Collaborative Filtering:**
 	-  Dataset `df_cf` (yang berisi data untuk _Collaborative Filtering_) diacak urutannya.
     -   **Alasan:** Memastikan bahwa saat data dibagi menjadi set pelatihan dan validasi, kedua set tersebut memiliki distribusi data yang representatif dan tidak ada bias urutan yang tidak disengaja yang dapat mempengaruhi pelatihan model.
     ```python
     df_cf = df_cf.sample(frac=1, random_state=42)
     ```
-9.  **Pemisahan Data Latih dan Validasi untuk Collaborative Filtering:**
+10.  **Pemisahan Data Latih dan Validasi untuk Collaborative Filtering:**
     -   Dataset `df_cf` diacak dan dibagi menjadi data latih (70%) dan data validasi (30%).
     -   **Alasan:** Untuk melatih model _Collaborative Filtering_ dan mengevaluasi kinerjanya pada data yang tidak terlihat selama pelatihan.
     ```python
@@ -269,42 +298,23 @@ Menggunakan dua pendekatan sistem rekomendasi: _Content-Based Filtering_ dan _Co
 Pendekatan ini merekomendasikan lagu berdasarkan kemiripan atribut kontennya (dalam hal ini, genre) dengan lagu yang disukai pengguna atau lagu input.
 
 -   **Tahapan:**
-    1.  **TF-IDF Vectorization pada Genre:**
-        -   Kolom `genre` dari `music_for_content_based` digunakan.
-        -   `TfidfVectorizer` mengubah daftar genre menjadi matriks representasi numerik TF-IDF. Setiap baris mewakili sebuah lagu, dan setiap kolom mewakili sebuah istilah genre unik. Nilai dalam matriks menunjukkan seberapa penting sebuah genre untuk sebuah lagu.
-        ```python
-        tfidf_vectorizer = TfidfVectorizer() 
-        tfidf_matrix = tfidf_vectorizer.fit_transform(data_cb['genre']) 
-        ```
-    2.  **Perhitungan Cosine Similarity:**
+    1.  **Perhitungan Cosine Similarity:**
         -   _Cosine similarity_ dihitung antar semua pasangan lagu berdasarkan vektor TF-IDF genre mereka. Hasilnya adalah matriks kemiripan (cosine_sim_df) di mana setiap elemen (i, j) menunjukkan kemiripan antara lagu i dan lagu j.
         ```python
         cosine_sim = cosine_similarity(tfidf_matrix) 
         cosine_sim_df = pd.DataFrame(cosine_sim, index=data_cb['track_name'], columns=data_cb['track_name']) 
         ```
-    3.  **Pembuatan Fungsi Rekomendasi (`music_recommendations`):**
+    2.  **Pembuatan Fungsi Rekomendasi (`music_recommendations`):**
         -   Fungsi ini mengambil nama lagu input dan `k` (jumlah rekomendasi) sebagai argumen.
         -   Mencari lagu input dalam matriks kemiripan.
         -   Mengambil `k` lagu teratas yang paling mirip (tidak termasuk lagu input itu sendiri).
         -   Mengembalikan DataFrame berisi nama lagu, artis, dan genre dari lagu-lagu yang direkomendasikan.
 
--   **Hasil Rekomendasi (Contoh):**
-    Memberikan rekomendasi untuk lagu "The Revelation":
-    ```
-    # Contoh output yang diharapkan:
-    #              track_name              artist      genre
-    # 0  		All I Had (I Gave)         Crowbar     metal
-    # 1    		   Peace Sells  		   Megadeth    metal
-    # ... (dan seterusnya)
-    ```
-    Memberikan rekomendasi untuk lagu "Wonderwall":
-    ```
-    # Contoh output yang diharapkan:
-    #           track_name      			artist     			genre
-    # 0  		Hide & Seek   		9mm Parabellum Bullet    	rock
-    # 1   		  Sun Ra       				 dEUS    			rock
-    # ... (dan seterusnya)
-    ```
+-   **Hasil Rekomendasi:**
+    <br>
+    <img width="508" alt="content based recommenndation" src="https://github.com/user-attachments/assets/ad9de01c-2125-40b3-bfd2-2d4885fde68d" />
+
+    Hasil ini menunjukkan bahwa sistem rekomendasi content-based filtering berfungsi dengan baik, di mana untuk lagu "The Revelation" sistem merekomendasikan 5 lagu metal (Crowbar, Megadeth, Rammstein, Metallica), dan untuk lagu "Wonderwall" sistem merekomendasikan 5 lagu rock (9mm Parabellum Bullet, dEUS, Stereophonics, Nine Inch Nails, Swans).
 
 -   **Kelebihan:**
     -   Dapat merekomendasikan item baru yang belum memiliki interaksi pengguna (_cold start_ untuk item).
@@ -361,23 +371,11 @@ Pendekatan ini merekomendasikan lagu berdasarkan pola perilaku pengguna lain. As
         -   Lagu-lagu diurutkan berdasarkan skor prediksi tertinggi.
         -   Top-N lagu direkomendasikan.
 
--   **Hasil Rekomendasi (Contoh):**
+-   **Hasil Rekomendasi:**
     Menampilkan rekomendasi untuk pengguna acak:
-    ```
-    # Showing recommendations for users: UserXYZ
-    # ===========================
-    # Tracks with most played from user
-    # --------------------------------
-    # Some Song A : rock
-    # Another Song B : pop
-    # ...
-    # --------------------------------
-    # Top 10 track recommendation
-    # --------------------------------
-    # Recommended Song X : pop
-    # Mr. Brightside : rock
-    # ... (dan seterusnya)
-    ```
+    <br>
+    <img width="660" alt="collaborative result" src="https://github.com/user-attachments/assets/368965a4-1d65-4a3c-8f2e-6873935ec7ce" />
+    <br>
     (Output sebenarnya dari kode akan bervariasi tergantung pada pengguna yang disampel).
 
 -   **Kelebihan:**
@@ -404,7 +402,7 @@ Metrik evaluasi digunakan untuk mengukur kinerja dari kedua sistem rekomendasi y
         -   `Unique Items Recommended` adalah jumlah item unik yang muncul dalam set rekomendasi yang dihasilkan untuk sampel input.
         -   `Total Unique Items in Catalog` adalah jumlah total item unik yang tersedia dalam dataset.
     -   **Cara Kerja:** Sejumlah lagu sampel (`sampled_tracks_for_coverage`) diambil dari dataset. Untuk setiap lagu sampel, top-K rekomendasi dihasilkan. Semua lagu unik yang muncul di rekomendasi ini dikumpulkan. Jumlah lagu unik ini kemudian dibagi dengan total lagu unik dalam dataset keseluruhan (`data_cb`).
-    -   **Hasil (Berdasarkan Kode):**
+    -   **Hasil:**
         ```
         Total unique tracks in dataset: 49556 
         Number of unique tracks recommended (from sample): 770 
