@@ -375,7 +375,6 @@ Pendekatan ini merekomendasikan lagu berdasarkan pola perilaku pengguna lain. As
     Menampilkan rekomendasi untuk pengguna acak:
     <br>
     <br>
-    <br>
     <img width="660" alt="collaborative result" src="https://github.com/user-attachments/assets/368965a4-1d65-4a3c-8f2e-6873935ec7ce" />
     <br>
     (Output sebenarnya dari kode akan bervariasi tergantung pada pengguna yang disampel).
