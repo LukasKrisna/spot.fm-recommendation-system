@@ -159,7 +159,6 @@ EDA dilakukan untuk memahami lebih dalam karakteristik dataset.
     -   Dilakukan pemeriksaan `music_info_df.info()` pada `music_info_df`.
 
     <br>
-    <br>
     
 	<img width="490" alt="Image" src="https://github.com/user-attachments/assets/66ec0a6a-3d77-43a2-b91e-bcd06d09e4ca" />
 
@@ -312,6 +311,7 @@ Pendekatan ini merekomendasikan lagu berdasarkan kemiripan atribut kontennya (da
 
 -   **Hasil Rekomendasi:**
     <br>
+    <br>
     <img width="508" alt="content based recommenndation" src="https://github.com/user-attachments/assets/ad9de01c-2125-40b3-bfd2-2d4885fde68d" />
 
     Hasil ini menunjukkan bahwa sistem rekomendasi content-based filtering berfungsi dengan baik, di mana untuk lagu "The Revelation" sistem merekomendasikan 5 lagu metal (Crowbar, Megadeth, Rammstein, Metallica), dan untuk lagu "Wonderwall" sistem merekomendasikan 5 lagu rock (9mm Parabellum Bullet, dEUS, Stereophonics, Nine Inch Nails, Swans).
@@ -373,6 +373,8 @@ Pendekatan ini merekomendasikan lagu berdasarkan pola perilaku pengguna lain. As
 
 -   **Hasil Rekomendasi:**
     Menampilkan rekomendasi untuk pengguna acak:
+    <br>
+    <br>
     <br>
     <img width="660" alt="collaborative result" src="https://github.com/user-attachments/assets/368965a4-1d65-4a3c-8f2e-6873935ec7ce" />
     <br>
